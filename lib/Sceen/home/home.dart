@@ -13,17 +13,15 @@ class Home extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25),// เพิ่มระยะห่างด้านซ้ายและขวา
+              padding: const EdgeInsets.symmetric(horizontal: 25),
               child: Text(
                 "คุณต้องการความช่วยเหลือฉุกเฉิน ใช่ไหม?",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
-
             SizedBox(height: 80),
             GestureDetector(
               onTap: () {
-                // นำทางไปยังหน้า SOS Confirmation
                 Navigator.push(
                   context,
                   MaterialPageRoute(
