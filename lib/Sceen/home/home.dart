@@ -1,5 +1,7 @@
+import 'package:ballauto/Sceen/BottomNavigationBar/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'sos_confirmation_screen.dart'; // นำเข้าหน้า SOS Confirmation
+
+import 'sos_confirmation_screen.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -7,7 +9,6 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -75,6 +76,10 @@ class Home extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 0, // Home อยู่ที่ index 0
+        onTap: (index) {}, // ไม่ต้องทำอะไรเพิ่ม เพราะ _navigateToPage จัดการให้
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:ballauto/Sceen/home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'formprofile.dart'; // นำเข้าไฟล์ formprofile.dart
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -35,8 +37,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ).showSnackBar(const SnackBar(content: Text("ลงทะเบียนสำเร็จ!")));
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Home()),
-        ); // นำทางไปยังหน้า Home หรือหน้าหลัก
+          MaterialPageRoute(builder: (context) => const FormProfileScreen()),
+        ); // นำทางไปยังหน้ากรอกข้อมูลส่วนตัวหลังจากลงทะเบียนสำเร็จ
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
           ScaffoldMessenger.of(context).showSnackBar(
