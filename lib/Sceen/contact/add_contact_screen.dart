@@ -18,6 +18,25 @@ class _AddContactScreenState extends State<AddContactScreen> {
       final phone = _phoneController.text.trim();
 
       try {
+        // ตรวจสอบว่าเบอร์โทรศัพท์มีอยู่ในระบบหรือไม่
+        final userExists = await _contactService.checkUserExists(phone);
+        if (!userExists) {
+          // แสดงข้อความแจ้งเตือนว่าไม่พบผู้ใช้
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('ไม่พบผู้ใช้ที่มีเบอร์นี้ในระบบ'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+          return;
+        }
+
+        // เพิ่มผู้ติดต่อ
         await _contactService.addContact(phone);
         // ScaffoldMessenger.of(context).showSnackBar(
         //   SnackBar(
@@ -32,17 +51,17 @@ class _AddContactScreenState extends State<AddContactScreen> {
         // );
         Navigator.pop(context);
       } catch (e) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: const Text('ไม่สามารถเพิ่มผู้ติดต่อได้'),
-        //     backgroundColor: Colors.redAccent,
-        //     behavior: SnackBarBehavior.floating,
-        //     shape: RoundedRectangleBorder(
-        //       borderRadius: BorderRadius.circular(8),
-        //     ),
-        //     margin: const EdgeInsets.all(16),
-        //   ),
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('ไม่สามารถเพิ่มผู้ติดต่อได้มีข้อผิดพลาดฐานข้อมูล'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
       }
     }
   }
@@ -70,7 +89,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
         backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
         elevation: 0,
       ),
-      backgroundColor: Colors.grey[200], // เปลี่ยนสีพื้นหลังที่นี่
+      backgroundColor: Colors.grey[200],
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),

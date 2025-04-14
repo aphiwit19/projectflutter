@@ -93,4 +93,19 @@ class ContactService {
       throw Exception('เกิดข้อผิดพลาดในการลบผู้ติดต่อ: $e');
     }
   }
+
+  // ตรวจสอบว่าเบอร์โทรศัพท์มีอยู่ในระบบหรือไม่
+Future<bool> checkUserExists(String phone) async {
+  try {
+    // ค้นหาผู้ใช้ด้วยเบอร์โทร
+    final querySnapshot = await _userCollection
+        .where('phone', isEqualTo: phone)
+        .get();
+
+    // ถ้ามีเอกสารในผลลัพธ์ แสดงว่าผู้ใช้มีอยู่ในระบบ
+    return querySnapshot.docs.isNotEmpty;
+  } catch (e) {
+    throw Exception('เกิดข้อผิดพลาดในการตรวจสอบผู้ใช้: $e');
+  }
+}
 }
