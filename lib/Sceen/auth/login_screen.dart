@@ -18,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isObscurePassword = true; // เพิ่มตัวแปรสถานะสำหรับแสดง/ซ่อนรหัสผ่าน
 
-
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -30,9 +29,13 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("เข้าสู่ระบบสำเร็จ!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("เข้าสู่ระบบสำเร็จ!"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const Home()),
@@ -118,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           _isObscurePassword = !_isObscurePassword;
                         });
                       },
-                    )
+                    ),
                   ),
                   obscureText: true,
                   validator: (value) {

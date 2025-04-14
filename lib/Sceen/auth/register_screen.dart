@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'formprofile.dart'; // นำเข้าไฟล์ formprofile.dart
 
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -32,9 +31,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("ลงทะเบียนสำเร็จ!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("ลงทะเบียนสำเร็จ!"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const FormProfileScreen()),
@@ -44,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("อีเมลนี้ถูกใช้งานแล้ว")),
           );
-        } else { 
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("เกิดข้อผิดพลาด: ${e.message}")),
           );

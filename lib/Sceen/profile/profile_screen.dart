@@ -41,6 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
       ),
+      backgroundColor: Colors.grey[200],
       body: FutureBuilder<UserProfile?>(
         future: _fetchUserData(),
         builder: (context, snapshot) {
@@ -60,6 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     Card(
+                      color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

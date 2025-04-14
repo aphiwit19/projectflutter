@@ -156,7 +156,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        color: Colors.grey[50], // เปลี่ยนพื้นหลังเป็นสีเทา
+        color: Colors.grey[200], // เปลี่ยนพื้นหลังเป็นสีเทา
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Form(
