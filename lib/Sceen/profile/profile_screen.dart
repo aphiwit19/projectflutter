@@ -4,10 +4,6 @@ import 'package:ballauto/model/user_profile.dart';
 import 'package:ballauto/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ballauto/Sceen/auth/login_screen.dart';
-import 'package:flutter/services.dart'; // สำหรับการคัดลอก
-import 'package:clipboard/clipboard.dart'; // สำหรับ package clipboard
-
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -38,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'ข้อมูลผู้ใช้งาน',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -57,96 +53,188 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           final userData = snapshot.data!;
-
           return Center(
             child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'ชื่อ: ${userData.name}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'เบอร์โทร: ${userData.phone}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'กรุ๊ปเลือด: ${userData.bloodType ?? 'ไม่ระบุ'}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'โรคประจำตัว: ${userData.disease}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'เพศ: ${userData.gender ?? 'ไม่ระบุ'}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'แพ้ยา: ${userData.allergy}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(userProfile: userData),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'ข้อมูลผู้ใช้งาน',
+                                  style: TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => EditProfileScreen(
+                                              userProfile: userData,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+
+                            /// 👇 แสดงข้อมูลแบบไม่ใช้ฟังก์ชัน
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.person,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(
+                                'ชื่อ-นามสกุล',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                userData.name,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.phone,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(
+                                'เบอร์โทรศัพท์',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                userData.phone,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.male,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(
+                                'เพศ',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                userData.gender ?? 'ไม่ระบุ',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.opacity,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(
+                                'กรุ๊ปเลือด',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                userData.bloodType ?? 'ไม่ระบุ',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.healing,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(
+                                'โรคประจำตัว',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                userData.disease,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.medication,
+                                color: Colors.redAccent,
+                              ),
+                              title: Text(
+                                'แพ้ยา',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                userData.allergy,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 20,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'แก้ไขข้อมูล',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await FirebaseAuth.instance.signOut();
-                        debugPrint('ออกจากระบบสำเร็จ');
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/login',
-                          (route) => false,
-                        );
-                      } catch (e) {
-                        debugPrint('ข้อผิดพลาด: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('เกิดข้อผิดพลาดในการออกจากระบบ: $e')),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 20,
+
+                    const SizedBox(height: 30),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await FirebaseAuth.instance.signOut();
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                            (route) => false,
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'เกิดข้อผิดพลาดในการออกจากระบบ: $e',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.logout, color: Colors.white),
+                      label: const Text(
+                        'ออกจากระบบ',
+                        style: TextStyle(color: Colors.white),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 24,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'ออกจากระบบ',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );

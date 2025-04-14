@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:ballauto/model/user_profile.dart';
 import 'package:ballauto/services/user_service.dart';
-import 'package:flutter/material.dart';
-import '../home/home.dart'; // เปลี่ยนจาก MainLayout เป็น Home
+import '../home/home.dart';
 
 class FormProfileScreen extends StatefulWidget {
   const FormProfileScreen({super.key});
@@ -14,82 +14,181 @@ class _FormProfileScreenState extends State<FormProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  String? _selectedGender;
-  String? _selectedBloodType;
   final TextEditingController _diseaseController = TextEditingController();
   final TextEditingController _allergyController = TextEditingController();
+  String? _selectedGender;
+  String? _selectedBloodType;
 
   final List<String> _genders = ['ชาย', 'หญิง', 'อื่นๆ'];
-  final List<String> _bloodTypes = ['A', 'B', 'AB', 'O'];
-
+  final List<String> _bloodTypes = ['A', 'B', 'O', 'AB'];
   final UserService _userService = UserService();
 
-  void _saveProfile() async {
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _diseaseController.dispose();
+    _allergyController.dispose();
+    super.dispose();
+  }
+
+  // ฟังก์ชันบันทึกโปรไฟล์
+  // คอมเมนต์: การจัดการ async และ error handling สำคัญมาก
+  // เพราะต้องแจ้งผู้ใช้เมื่อบันทึกสำเร็จหรือเกิดข้อผิดพลาด
+  // และต้องป้องกัน memory leak ด้วยการเช็ค mounted
+  Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      final userProfile = UserProfile(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        gender: _selectedGender,
-        bloodType: _selectedBloodType,
-        disease: _diseaseController.text.trim(),
-        allergy: _allergyController.text.trim(),
-      );
-
       try {
-        await _userService.saveUserProfile(userProfile);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('บันทึกข้อมูลสำเร็จ!')),
+        final userProfile = UserProfile(
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          gender: _selectedGender,
+          bloodType: _selectedBloodType,
+          disease: _diseaseController.text.trim(),
+          allergy: _allergyController.text.trim(),
         );
 
+        await _userService.saveUserProfile(userProfile);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('บันทึกข้อมูลสำเร็จ!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        // นำทางไปหน้า Home และลบ stack เดิม
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const Home()), // เปลี่ยนเป็น Home
+          MaterialPageRoute(builder: (context) => const Home()),
           (route) => false,
         );
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('เกิดข้อผิดพลาด: $e')),
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาด: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
+  }
+
+  // ฟังก์ชันสร้างช่องกรอกข้อมูล
+  Widget _buildInput({
+    required String label,
+    required TextEditingController controller,
+    TextInputType inputType = TextInputType.text,
+    String? Function(String?)? validator,
+    String? hintText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: inputType,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hintText,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: Colors.white, // ช่องกรอกเป็นสีขาว
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        errorStyle: const TextStyle(fontSize: 12),
+      ),
+      validator: validator,
+    );
+  }
+
+  // ฟังก์ชันสร้าง Dropdown
+  // คอมเมนต์: DropdownButtonFormField ต้องระวังเรื่อง state
+  // ค่า value ต้องอยู่ใน items เสมอ มิฉะนั้นจะเกิด error
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+    String? Function(String?)? validator,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: Colors.white, // ช่อง dropdown เป็นสีขาว
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+      ),
+      items:
+          items
+              .map(
+                (item) => DropdownMenuItem(
+                  value: item,
+                  child: Text(item, style: const TextStyle(fontSize: 16)),
+                ),
+              )
+              .toList(),
+      onChanged: onChanged,
+      validator: validator,
+      dropdownColor: Colors.white,
+      icon: const Icon(Icons.arrow_drop_down, color: Colors.redAccent),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('กรอกข้อมูลส่วนตัว'),
+        title: const Text(
+          'กรอกข้อมูลส่วนตัว',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
+        elevation: 0,
+        foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: Container(
+        color: Colors.grey[200], // พื้นหลังเป็นสีเทา
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Form(
+            key: _formKey,
+            child: ListView(
               children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'ชื่อ-นามสกุล',
-                    border: OutlineInputBorder(),
+                const Text(
+                  'ข้อมูลส่วนตัว',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'กรุณากรอกชื่อ-นามสกุล';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildInput(
+                  label: 'ชื่อ-นามสกุล',
+                  controller: _nameController,
+                  hintText: 'กรอกชื่อ-นามสกุล',
+                  validator:
+                      (value) =>
+                          value == null || value.isEmpty
+                              ? 'กรุณากรอกชื่อ-นามสกุล'
+                              : null,
+                ),
+                const SizedBox(height: 16),
+                _buildInput(
+                  label: 'เบอร์โทรศัพท์',
                   controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'เบอร์โทรศัพท์',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.phone,
+                  
+                  inputType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'กรุณากรอกเบอร์โทรศัพท์';
@@ -101,88 +200,51 @@ class _FormProfileScreenState extends State<FormProfileScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                _buildDropdown(
+                  label: 'เพศ',
                   value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'เพศ',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _genders
-                      .map((gender) => DropdownMenuItem(
-                            value: gender,
-                            child: Text(gender),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'กรุณาเลือกเพศ';
-                    }
-                    return null;
-                  },
+                  items: _genders,
+                  onChanged: (value) => setState(() => _selectedGender = value),
+                  validator: (value) => value == null ? 'กรุณาเลือกเพศ' : null,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                _buildDropdown(
+                  label: 'หมู่เลือด',
                   value: _selectedBloodType,
-                  decoration: const InputDecoration(
-                    labelText: 'หมู่เลือด',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _bloodTypes
-                      .map((bloodType) => DropdownMenuItem(
-                            value: bloodType,
-                            child: Text(bloodType),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedBloodType = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'กรุณาเลือกหมู่เลือด';
-                    }
-                    return null;
-                  },
+                  items: _bloodTypes,
+                  onChanged:
+                      (value) => setState(() => _selectedBloodType = value),
+                  validator:
+                      (value) => value == null ? 'กรุณาเลือกหมู่เลือด' : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildInput(
+                  label: 'โรคประจำตัว',
                   controller: _diseaseController,
-                  decoration: const InputDecoration(
-                    labelText: 'โรคประจำตัว',
-                    border: OutlineInputBorder(),
-                  ),
+                  
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildInput(
+                  label: 'การแพ้ยา',
                   controller: _allergyController,
-                  decoration: const InputDecoration(
-                    labelText: 'การแพ้ยา',
-                    border: OutlineInputBorder(),
-                  ),
+                  
                 ),
                 const SizedBox(height: 32),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 15,
-                        horizontal: 30,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'บันทึกข้อมูล',
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    elevation: 2,
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: const Text(
+                    'บันทึกข้อมูล',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
