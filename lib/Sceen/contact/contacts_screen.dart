@@ -1,6 +1,8 @@
 import 'package:ballauto/Sceen/BottomNavigationBar/bottom_navigation_bar.dart';
 import 'package:ballauto/Sceen/contact/add_contact_screen.dart';
+import 'package:ballauto/Sceen/chats/conversation_screen.dart'; // เพิ่ม import นี้
 import 'package:ballauto/model/contact.dart';
+import 'package:ballauto/services/contact_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +13,11 @@ class ContactsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final ContactService contactService = ContactService();
 
     if (user == null) {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            'กรุณาล็อกอินก่อน',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-          ),
-        ),
+      return const Scaffold(
+        body: Center(child: Text('กรุณาล็อกอินก่อน')),
       );
     }
 
@@ -35,9 +33,7 @@ class ContactsScreen extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
-        elevation: 0,
       ),
-      backgroundColor: Colors.grey[200], // เปลี่ยนสีพื้นหลังที่นี่
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -50,117 +46,94 @@ class ContactsScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'เกิดข้อผิดพลาดในการโหลดข้อมูล',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-            );
+            return const Center(child: Text('เกิดข้อผิดพลาดในการโหลดข้อมูล'));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text(
-                'ยังไม่มีผู้ติดต่อ',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-            );
+            return const Center(child: Text('ยังไม่มีผู้ติดต่อ'));
           }
 
           final contacts = snapshot.data!.docs;
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
             itemCount: contacts.length,
             itemBuilder: (context, index) {
-              final contactData = Contact.fromMap(
-                contacts[index].data() as Map<String, dynamic>,
-              );
-              return Card(
-                color: Colors.white, // เปลี่ยนสีพื้นหลังของกรอบผู้ติดต่อที่นี่
-                elevation: 3,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
-                    child: Text(
-                      contactData.name.isNotEmpty
-                          ? contactData.name[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+              final contactData = Contact.fromMap(contacts[index].data() as Map<String, dynamic>);
+              final contactUid = contacts[index].id;
+
+              return ListTile(
+                title: Text(contactData.name),
+                subtitle: Text(contactData.phone),
+                trailing: PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: Colors.grey),
+                  onSelected: (value) async {
+                    if (value == 'delete') {
+                      await contactService.deleteContact(contactUid);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('ลบผู้ติดต่อสำเร็จ')),
+                      );
+                    } else if (value == 'chat') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ConversationScreen(
+                            contactUid: contactUid,
+                            contactName: contactData.name,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'chat',
+                      child: ListTile(
+                        leading: Icon(Icons.chat, color: Colors.red),
+                        title: Text('เริ่มแชท'),
                       ),
                     ),
-                  ),
-                  title: Text(
-                    contactData.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: Icon(Icons.delete, color: Colors.red),
+                        title: Text('ลบ'),
+                      ),
                     ),
-                  ),
-                  subtitle: Text(
-                    contactData.phone,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.redAccent),
-                    onPressed: () async {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .collection('contacts')
-                          .doc(contacts[index].id)
-                          .delete();
-                      // ScaffoldMessenger.of(context).showSnackBar(
-                      //   SnackBar(
-                      //     content: const Text('ลบผู้ติดต่อสำเร็จ'),
-                      //     backgroundColor: Colors.green,
-                      //     behavior: SnackBarBehavior.floating,
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(8),
-                      //     ),
-                      //     margin: const EdgeInsets.all(16),
-                      //   ),
-                      // );
-                    },
-                  ),
+                  ],
                 ),
               );
             },
           );
         },
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 3,
-        onTap: (index) {},
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddContactScreen(),
-            ),
-          );
-        },
-        backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 20.0),
+        child: CustomBottomNavigationBar(
+          currentIndex: 3,
+          onTap: (index) {},
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddContactScreen()),
+            );
+          },
+          backgroundColor: const Color.fromRGBO(230, 70, 70, 1),
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 30,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

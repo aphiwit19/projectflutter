@@ -1,5 +1,3 @@
-//ดึงข้อมูลผู้ติดต่อจาก Firebase และ เพิ่ม หรือ ลบผู้ติดต่อใน Firebase
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../model/contact.dart';
@@ -7,8 +5,8 @@ import '../model/user_profile.dart';
 import 'user_service.dart';
 
 class ContactService {
-  final CollectionReference _userCollection =
-      FirebaseFirestore.instance.collection('users');
+  final CollectionReference _userCollection = FirebaseFirestore.instance
+      .collection('users');
   final UserService _userService = UserService();
 
   // เพิ่มผู้ติดต่อ
@@ -54,23 +52,20 @@ class ContactService {
     }
   }
 
-  // ดึงรายชื่อผู้ติดต่อ
-  Future<List<Contact>> getContacts() async {
+  // ใน contact_service.dart
+  // เปลี่ยนจาก Future เป็น Stream
+  Stream<QuerySnapshot> getContacts() {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         throw Exception('กรุณาล็อกอินก่อน');
       }
 
-      final query = await _userCollection
+      return _userCollection
           .doc(user.uid)
           .collection('contacts')
           .orderBy('addedAt', descending: true)
-          .get();
-
-      return query.docs
-          .map((doc) => Contact.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
+          .snapshots();
     } catch (e) {
       throw Exception('เกิดข้อผิดพลาดในการดึงรายชื่อผู้ติดต่อ: $e');
     }
@@ -95,17 +90,13 @@ class ContactService {
   }
 
   // ตรวจสอบว่าเบอร์โทรศัพท์มีอยู่ในระบบหรือไม่
-Future<bool> checkUserExists(String phone) async {
-  try {
-    // ค้นหาผู้ใช้ด้วยเบอร์โทร
-    final querySnapshot = await _userCollection
-        .where('phone', isEqualTo: phone)
-        .get();
-
-    // ถ้ามีเอกสารในผลลัพธ์ แสดงว่าผู้ใช้มีอยู่ในระบบ
-    return querySnapshot.docs.isNotEmpty;
-  } catch (e) {
-    throw Exception('เกิดข้อผิดพลาดในการตรวจสอบผู้ใช้: $e');
+  Future<bool> checkUserExists(String phone) async {
+    try {
+      final querySnapshot =
+          await _userCollection.where('phone', isEqualTo: phone).get();
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      throw Exception('เกิดข้อผิดพลาดในการตรวจสอบผู้ใช้: $e');
+    }
   }
-}
 }
